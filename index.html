@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtime location tracker</title>
+
+    <!-- leaflet css  -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+</body>
+</html>
+
+<!-- leaflet js  -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script type="module">
+    
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.13.0/firebase-app.js";
+    import { getDatabase, ref, child, onValue, get, set } from "https://www.gstatic.com/firebasejs/9.13.0/firebase-database.js"; 
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+  
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+    apiKey: "AIzaSyBeGQLjhOGt-ZLTfve8hcSGUgE4CCJwLCs",
+    authDomain: "data-fba1a.firebaseapp.com",
+    databaseURL: "https://data-fba1a-default-rtdb.firebaseio.com",
+    projectId: "data-fba1a",
+    storageBucket: "data-fba1a.appspot.com",
+    messagingSenderId: "1031058499636",
+    appId: "1:1031058499636:web:87d8ae68ab99bc96b18261"
+  };
+    // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      const dbRef = ref(db);
+
+    // Map initialization 
+    var map = L.map('map').setView([14.0860746, 100.608406], 2);
+
+    //osm layer
+    var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+    osm.addTo(map);
+
+    var marker,long,lat;
+    get(child(dbRef, `GPS_Position`)).then((snapshot) => {
+            
+            if (snapshot.exists()) {
+            console.log(snapshot.val());
+            console.log(snapshot.val().latitude);
+            console.log(snapshot.val().longitude);
+            lat = snapshot.val().latitude;
+            long = snapshot.val().longitude;
+            console.log(typeof(lat));
+            marker = L.marker([lat, long], {color : 'red'});
+
+            //var va = L.layerGroup([marker]);
+            //var featureGroup = L.featureGroup([marker]).addTo(map);
+            //map.addLayer(marker);
+            console.log("featureGroup");
+
+            console.log("Your coordinate is: Lat: "+ lat +" Long: "+ long);
+            //map.fitBounds(featureGroup.getBounds());
+
+            } else {
+              console.log("No data available");
+            }
+          }).catch((error) => {
+            console.error(error);
+          });
+
+  
+    setInterval(() => {
+
+     
+
+        get(child(dbRef, `GPS_Position`)).then((snapshot) => {
+            
+
+            if(marker) {
+            map.removeLayer(marker)
+            console.log("ah c'est bon");
+            }
+
+
+            if (snapshot.exists()) {
+            console.log(snapshot.val());
+            console.log(snapshot.val().latitude);
+            console.log(snapshot.val().longitude);
+            lat = snapshot.val().latitude;
+            long = snapshot.val().longitude;
+            console.log(typeof(lat));
+            marker = L.marker([lat, long], {color : 'red'});
+
+            //var va = L.layerGroup([marker]);
+
+            //map.addLayer(marker);
+            var featureGroup = L.featureGroup([marker]).addTo(map);
+
+            //map.fitBounds(featureGroup.getBounds())
+            console.log("Your coordinate is: Lat: "+ lat +" Long: "+ long);
+
+            } else {
+              console.log("No data available");
+            }
+          }).catch((error) => {
+            console.error(error);
+          });
+
+
+
+
+        
+
+
+}, 10000);
+
+</script>
